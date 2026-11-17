@@ -1,0 +1,12 @@
+[build]
+  publish = "outputs/netlify-encrypted-dashboard"
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  included_files = ["ledger/scripts/*.py", "ledger/assets/dashboard.html", "node_modules/pyodide/**", "tools/encrypted-dashboard/*.mjs"]
+  external_node_modules = ["pyodide"]
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex, nofollow, noarchive"

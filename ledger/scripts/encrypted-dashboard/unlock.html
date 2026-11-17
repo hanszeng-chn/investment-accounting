@@ -1,0 +1,22 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src blob:; img-src data: blob:; base-uri 'none'; form-action 'none'"><title>投资看板 · 解锁</title><style>
+*{box-sizing:border-box}body{margin:0;background:#0b1220;color:#e7edf7;font-family:system-ui,-apple-system,sans-serif}main{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px}.card{width:min(100%,420px);padding:36px 28px;background:#152033;border:1px solid #2c3c54;border-radius:20px}h1{font-size:26px;margin:0 0 12px}p{color:#a7b5ca;line-height:1.7;font-size:14px}label{display:block;margin:26px 0 10px;font-size:14px}input,button{font:inherit;width:100%;padding:14px;border-radius:10px}input{background:#0b1424;border:1px solid #425574;color:#fff}*:focus,*:focus-visible{outline:none!important;box-shadow:none!important}button{margin-top:16px;background:#65d8c3;color:#102722;border:0;cursor:pointer;font-weight:650}button:disabled{opacity:.6;cursor:wait}#error{min-height:24px;color:#ffb4ac;font-size:14px;margin:12px 0 0}small{color:#8c9cb3;line-height:1.7;display:block;margin-top:20px}
+</style></head><body><main id="gate"><section class="card"><h1>解锁投资看板</h1><p>输入密码后，在此设备上查看投资记录。</p><form id="unlock"><label for="password">访问密码</label><input id="password" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required><button id="submit" type="submit">解锁看板</button><p id="error" role="status" aria-live="polite"></p></form><small>密码不会发送到服务器。刷新或关闭页面后，需要重新解锁。</small></section></main>
+<script id="encrypted-payload" type="application/json">__ENCRYPTED_PAYLOAD__</script>
+<script>
+'use strict';
+const payload=JSON.parse(document.getElementById('encrypted-payload').textContent);
+const field=document.getElementById('password'),submit=document.getElementById('submit'),error=document.getElementById('error');
+const decode=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+document.getElementById('unlock').addEventListener('submit',async event=>{
+ event.preventDefault();if(submit.disabled)return;submit.disabled=true;submit.textContent='正在解锁…';error.textContent='';
+ try{
+  if(!globalThis.crypto?.subtle)throw new Error('UNSUPPORTED');
+  const material=await crypto.subtle.importKey('raw',new TextEncoder().encode(field.value),'PBKDF2',false,['deriveKey']);field.value='';
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:decode(payload.salt),iterations:payload.iterations},material,{name:'AES-GCM',length:256},false,['decrypt']);
+  const bytes=await crypto.subtle.decrypt({name:'AES-GCM',iv:decode(payload.iv),tagLength:128},key,decode(payload.ciphertext));
+  const content=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+  document.open();document.write(content);document.close();
+ }catch(e){field.value='';error.textContent=e.message==='UNSUPPORTED'?'请使用支持安全加密的浏览器，并通过 HTTPS 打开。':'密码不正确，或加密文件已损坏。';field.focus()}
+ finally{submit.disabled=false;submit.textContent='解锁看板'}
+});
+</script></body></html>
